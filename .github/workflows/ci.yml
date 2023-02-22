@@ -24,11 +24,6 @@ jobs:
         go:
         - 1.18.x
         - 1.19.x
-        include:
-        - platform: macos-latest
-          go: 1.19.x
-        - platform: windows-latest
-          go: 1.19.x
     runs-on: ${{ matrix.platform }}
     steps:
     - uses: actions/checkout@v3
