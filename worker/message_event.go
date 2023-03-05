@@ -1,5 +1,4 @@
 //go:build js && wasm
-// +build js,wasm
 
 package worker
 
@@ -8,12 +7,15 @@ import (
 	"github.com/pkg/errors"
 )
 
+// MessageEvent is received from the channel returned by Listen().
+// Represents a JS MessageEvent.
 type MessageEvent struct {
 	data   safejs.Value
 	err    error
 	target *messagePort
 }
 
+// Data returns this event's data or a parse error
 func (e MessageEvent) Data() (safejs.Value, error) {
 	return e.data, errors.Wrapf(e.err, "failed to parse MessageEvent %+v", e.data)
 }

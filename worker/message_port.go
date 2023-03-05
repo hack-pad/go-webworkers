@@ -1,5 +1,4 @@
 //go:build js && wasm
-// +build js,wasm
 
 package worker
 
@@ -9,8 +8,6 @@ import (
 
 	"github.com/hack-pad/safejs"
 )
-
-var jsMessageChannel = safejs.MustGetGlobal("MessageChannel")
 
 type messagePort struct {
 	jsMessagePort safejs.Value

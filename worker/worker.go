@@ -1,12 +1,10 @@
 //go:build js && wasm
-// +build js,wasm
 
 // Package worker provides a Web Workers driver for Go code compiled to WebAssembly.
 package worker
 
 import (
 	"context"
-	_ "embed"
 
 	"github.com/hack-pad/safejs"
 )
@@ -24,12 +22,13 @@ type Worker struct {
 	port   *messagePort
 }
 
-type WorkerOptions struct {
+// Options contains optional configuration for new Workers
+type Options struct {
 	// Name specifies an identifying name for the DedicatedWorkerGlobalScope representing the scope of the worker, which is mainly useful for debugging purposes.
 	Name string
 }
 
-func (w WorkerOptions) toJSValue() (safejs.Value, error) {
+func (w Options) toJSValue() (safejs.Value, error) {
 	options := make(map[string]any)
 	if w.Name != "" {
 		options["name"] = w.Name
@@ -38,7 +37,7 @@ func (w WorkerOptions) toJSValue() (safejs.Value, error) {
 }
 
 // New starts a worker with the given script's URL and returns it
-func New(url string, options WorkerOptions) (*Worker, error) {
+func New(url string, options Options) (*Worker, error) {
 	jsOptions, err := options.toJSValue()
 	if err != nil {
 		return nil, err
@@ -58,7 +57,7 @@ func New(url string, options WorkerOptions) (*Worker, error) {
 }
 
 // NewFromScript is like New, but starts the worker with the given script (in JavaScript)
-func NewFromScript(jsScript string, options WorkerOptions) (*Worker, error) {
+func NewFromScript(jsScript string, options Options) (*Worker, error) {
 	blob, err := jsBlob.New([]any{jsScript}, map[string]any{
 		"type": "text/javascript",
 	})

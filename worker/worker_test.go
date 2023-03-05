@@ -1,5 +1,4 @@
 //go:build js && wasm
-// +build js,wasm
 
 package worker
 
@@ -13,7 +12,6 @@ import (
 )
 
 var (
-	jsFunction   = safejs.MustGetGlobal("Function")
 	jsJSON       = safejs.MustGetGlobal("JSON")
 	jsUint8Array = safejs.MustGetGlobal("Uint8Array")
 )
@@ -23,17 +21,17 @@ func TestWorkerOptionsToJSValue(t *testing.T) {
 
 	for _, tc := range []struct {
 		description string
-		options     WorkerOptions
+		options     Options
 		expect      any
 	}{
 		{
 			description: "no options",
-			options:     WorkerOptions{},
+			options:     Options{},
 			expect:      map[string]any{},
 		},
 		{
 			description: "name",
-			options: WorkerOptions{
+			options: Options{
 				Name: "foo",
 			},
 			expect: map[string]any{
@@ -102,7 +100,10 @@ func makeBlobURL(t *testing.T, contents []byte, contentType string) string {
 
 func cleanUpWorker(t *testing.T, worker *Worker) {
 	t.Cleanup(func() {
-		worker.Terminate()
+		err := worker.Terminate()
+		if err != nil {
+			t.Fatal(err)
+		}
 	})
 }
 
@@ -112,7 +113,7 @@ func TestNew(t *testing.T) {
 	blobURL := makeBlobURL(t, []byte(fmt.Sprintf(`"use strict";
 self.postMessage(%q);
 `, messageText)), "text/javascript")
-	worker, err := New(blobURL, WorkerOptions{})
+	worker, err := New(blobURL, Options{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -146,7 +147,7 @@ func TestNewFromScript(t *testing.T) {
 
 self.postMessage(%q);
 `, messageText)
-	worker, err := NewFromScript(script, WorkerOptions{})
+	worker, err := NewFromScript(script, Options{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -179,7 +180,7 @@ func TestWorkerTerminate(t *testing.T) {
 
 self.postMessage("start");
 self.setTimeout(() => self.postMessage("done waiting"), 200);
-`, WorkerOptions{})
+`, Options{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -232,7 +233,7 @@ self.addEventListener("message", event => {
 
 	t.Run("listen before post", func(t *testing.T) {
 		t.Parallel()
-		worker, err := NewFromScript(pingPongScript, WorkerOptions{})
+		worker, err := NewFromScript(pingPongScript, Options{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -267,7 +268,7 @@ self.addEventListener("message", event => {
 
 	t.Run("listen after post", func(t *testing.T) {
 		t.Parallel()
-		worker, err := NewFromScript(pingPongScript, WorkerOptions{})
+		worker, err := NewFromScript(pingPongScript, Options{})
 		if err != nil {
 			t.Fatal(err)
 		}
