@@ -16,33 +16,6 @@ type messagePort struct {
 	jsMessagePort safejs.Value
 }
 
-func newChannel() (*messagePort, *messagePort, error) {
-	channel, err := jsMessageChannel.New()
-	if err != nil {
-		return nil, nil, err
-	}
-	port1JSValue, err := channel.Get("port1")
-	if err != nil {
-		return nil, nil, err
-	}
-	port1, err := wrapMessagePort(port1JSValue)
-	if err != nil {
-		return nil, nil, err
-	}
-	if err != nil {
-		return nil, nil, err
-	}
-	port2JSValue, err := channel.Get("port2")
-	if err != nil {
-		return nil, nil, err
-	}
-	port2, err := wrapMessagePort(port2JSValue)
-	if err != nil {
-		return nil, nil, err
-	}
-	return port1, port2, nil
-}
-
 func wrapMessagePort(v safejs.Value) (*messagePort, error) {
 	someMethod, err := v.Get("postMessage")
 	if err != nil {
@@ -125,16 +98,4 @@ func nonBlocking(fn func(args []safejs.Value)) (safejs.Func, error) {
 		go fn(args)
 		return nil
 	})
-}
-
-func (p *messagePort) Close() error {
-	_, err := p.jsMessagePort.Call("close")
-	return err
-}
-
-func (p *messagePort) jsValue() safejs.Value {
-	if p == nil {
-		return safejs.Null()
-	}
-	return p.jsMessagePort
 }
