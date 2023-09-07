@@ -1,6 +1,6 @@
 //go:build js && wasm
 
-package worker
+package internal
 
 import (
 	"github.com/hack-pad/safejs"
@@ -12,7 +12,7 @@ import (
 type MessageEvent struct {
 	data   safejs.Value
 	err    error
-	target *messagePort
+	target *MessagePort
 }
 
 // Data returns this event's data or a parse error
@@ -25,7 +25,7 @@ func parseMessageEvent(v safejs.Value) MessageEvent {
 	if err != nil {
 		return MessageEvent{err: err}
 	}
-	target, err := wrapMessagePort(value)
+	target, err := WrapMessagePort(value)
 	if err != nil {
 		return MessageEvent{err: err}
 	}

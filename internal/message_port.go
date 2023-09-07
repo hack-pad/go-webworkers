@@ -1,19 +1,18 @@
 //go:build js && wasm
 
-package worker
+package internal
 
 import (
 	"context"
 	"fmt"
-
 	"github.com/hack-pad/safejs"
 )
 
-type messagePort struct {
+type MessagePort struct {
 	jsMessagePort safejs.Value
 }
 
-func wrapMessagePort(v safejs.Value) (*messagePort, error) {
+func WrapMessagePort(v safejs.Value) (*MessagePort, error) {
 	someMethod, err := v.Get("postMessage")
 	if err != nil {
 		return nil, err
@@ -21,10 +20,10 @@ func wrapMessagePort(v safejs.Value) (*messagePort, error) {
 	if truthy, err := someMethod.Truthy(); err != nil || !truthy {
 		return nil, fmt.Errorf("invalid MessagePort value: postMessage is not a function")
 	}
-	return &messagePort{v}, nil
+	return &MessagePort{v}, nil
 }
 
-func (p *messagePort) PostMessage(data safejs.Value, transfers []safejs.Value) error {
+func (p *MessagePort) PostMessage(data safejs.Value, transfers []safejs.Value) error {
 	args := append([]any{data}, toJSSlice(transfers))
 	_, err := p.jsMessagePort.Call("postMessage", args...)
 	return err
@@ -38,7 +37,7 @@ func toJSSlice[Type any](slice []Type) []any {
 	return newSlice
 }
 
-func (p *messagePort) Listen(ctx context.Context) (_ <-chan MessageEvent, err error) {
+func (p *MessagePort) Listen(ctx context.Context) (_ <-chan MessageEvent, err error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer func() {
 		if err != nil {
@@ -90,9 +89,7 @@ func (p *messagePort) Listen(ctx context.Context) (_ <-chan MessageEvent, err er
 	return events, nil
 }
 
-func nonBlocking(fn func(args []safejs.Value)) (safejs.Func, error) {
-	return safejs.FuncOf(func(_ safejs.Value, args []safejs.Value) any {
-		go fn(args)
-		return nil
-	})
+func (p *MessagePort) Close() error {
+	_, err := p.jsMessagePort.Call("close")
+	return err
 }
