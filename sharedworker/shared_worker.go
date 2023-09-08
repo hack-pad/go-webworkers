@@ -5,6 +5,7 @@ package sharedworker
 
 import (
 	"context"
+
 	"github.com/hack-pad/go-webworkers/internal"
 
 	"github.com/hack-pad/safejs"
@@ -92,9 +93,4 @@ func (w *SharedWorker) PostMessage(data safejs.Value, transfers []safejs.Value) 
 // Stops the listener and closes the channel when ctx is canceled.
 func (w *SharedWorker) Listen(ctx context.Context) (<-chan internal.MessageEvent, error) {
 	return w.msgport.Listen(ctx)
-}
-
-// Close disconnects the port to the worker, so it is no longer active. This stops the flow of messages to that port.
-func (w *SharedWorker) Close() error {
-	return w.msgport.Close()
 }

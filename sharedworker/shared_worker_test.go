@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/hack-pad/safejs"
 )
@@ -127,51 +126,6 @@ onconnect = (e) => {
 	}
 	if msg := workerName + ": " + messageText; dataStr != msg {
 		t.Errorf("Expected %q, got %q", msg, dataStr)
-	}
-}
-
-func TestWorkerClose(t *testing.T) {
-	t.Parallel()
-	worker, err := NewFromScript(`
-"use strict";
-
-onconnect = (e) => {
-    const port = e.ports[0];
-	port.postMessage("start");
-	self.setTimeout(() => post.postMessage("done waiting"), 200);
-};
-`, "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	ctx, cancel := context.WithCancel(context.Background())
-	t.Cleanup(cancel)
-	messages, err := worker.Listen(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	message := <-messages
-	data, err := message.Data()
-	if err != nil {
-		t.Fatal(err)
-	}
-	dataStr, err := data.String()
-	if err != nil {
-		t.Error(err)
-	}
-	if dataStr != "start" {
-		t.Fatalf("Expected worker to send 'start', got %s", dataStr)
-	}
-
-	err = worker.Close()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	select {
-	case message := <-messages:
-		t.Errorf("Should not receive the delayed message on a terminated worker, got: %v", message)
-	case <-time.After(400 * time.Millisecond):
 	}
 }
 

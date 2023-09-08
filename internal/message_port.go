@@ -5,6 +5,7 @@ package internal
 import (
 	"context"
 	"fmt"
+
 	"github.com/hack-pad/safejs"
 )
 
@@ -87,9 +88,4 @@ func (p *MessagePort) Listen(ctx context.Context) (_ <-chan MessageEvent, err er
 		}
 	}
 	return events, nil
-}
-
-func (p *MessagePort) Close() error {
-	_, err := p.jsMessagePort.Call("close")
-	return err
 }
