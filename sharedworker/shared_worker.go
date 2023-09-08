@@ -12,9 +12,8 @@ import (
 )
 
 var (
-	jsWorker = safejs.MustGetGlobal("SharedWorker")
-	jsURL    = safejs.MustGetGlobal("URL")
-	jsBlob   = safejs.MustGetGlobal("Blob")
+	jsURL  = safejs.MustGetGlobal("URL")
+	jsBlob = safejs.MustGetGlobal("Blob")
 )
 
 // SharedWorker is a Shared Web Worker, which represents a background task created via a script.
@@ -28,7 +27,7 @@ type SharedWorker struct {
 
 // New starts a worker with the given script's URL and name
 func New(url, name string) (*SharedWorker, error) {
-	worker, err := jsWorker.New(url, name)
+	worker, err := safejs.MustGetGlobal("SharedWorker").New(url, name)
 	if err != nil {
 		return nil, err
 	}
