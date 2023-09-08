@@ -6,9 +6,13 @@ import (
 	"github.com/hack-pad/safejs"
 )
 
+type listenable interface {
+	MessageEventConnect | MessageEventMessage
+}
+
 // listen adds the EventListener on the listener for the specified events.
 // It returns a channel, which will send the MessageEvent(s) listened on, until the ctx is canceled.
-func listen(ctx context.Context, listener safejs.Value, events ...string) (_ <-chan MessageEvent, err error) {
+func listen[T listenable](ctx context.Context, listener safejs.Value, parseFunc func(safejs.Value) T, events ...string) (_ <-chan T, err error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer func() {
 		if err != nil {
@@ -16,12 +20,12 @@ func listen(ctx context.Context, listener safejs.Value, events ...string) (_ <-c
 		}
 	}()
 
-	eventsCh := make(chan MessageEvent)
+	eventsCh := make(chan T)
 
 	var handlers []safejs.Func
 	for range events {
 		handler, err := nonBlocking(func(args []safejs.Value) {
-			eventsCh <- parseMessageEvent(args[0])
+			eventsCh <- parseFunc(args[0])
 		})
 		if err != nil {
 			return nil, err

@@ -90,6 +90,6 @@ func (w *SharedWorker) PostMessage(data safejs.Value, transfers []safejs.Value) 
 
 // Listen sends message events on a channel for events fired by self.postMessage() calls inside the Worker's global scope.
 // Stops the listener and closes the channel when ctx is canceled.
-func (w *SharedWorker) Listen(ctx context.Context) (<-chan types.MessageEvent, error) {
+func (w *SharedWorker) Listen(ctx context.Context) (<-chan types.MessageEventMessage, error) {
 	return w.msgport.Listen(ctx)
 }

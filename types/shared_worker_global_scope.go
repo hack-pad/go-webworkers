@@ -25,8 +25,8 @@ func WrapSharedWorkerGlobalScope(v safejs.Value) (*SharedWorkerGlobalScope, erro
 }
 
 // Listen listens on the "connect" events, until the ctx is canceled.
-func (p *SharedWorkerGlobalScope) Listen(ctx context.Context) (<-chan MessageEvent, error) {
-	events, err := listen(ctx, p.self, "connect")
+func (p *SharedWorkerGlobalScope) Listen(ctx context.Context) (<-chan MessageEventConnect, error) {
+	events, err := listen(ctx, p.self, parseMessageEventConnect, "connect")
 	if err != nil {
 		return nil, err
 	}

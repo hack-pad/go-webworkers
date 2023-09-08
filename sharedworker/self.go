@@ -39,7 +39,7 @@ func Self() (*GlobalSelf, error) {
 // by connection calls to this worker from within the parent scope.
 // Users are expected to call the Ports() on the MessageEvent, and take the 1st one as the target MessagePort.
 // Stops the listener and closes the channel when ctx is canceled.
-func (s *GlobalSelf) Listen(ctx context.Context) (<-chan types.MessageEvent, error) {
+func (s *GlobalSelf) Listen(ctx context.Context) (<-chan types.MessageEventConnect, error) {
 	return s.scope.Listen(ctx)
 }
 

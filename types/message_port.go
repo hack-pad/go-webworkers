@@ -39,8 +39,8 @@ func toJSSlice[Type any](slice []Type) []any {
 }
 
 // Listen starts the MessagePort to listen on the "message" and "messageerror" events, until the ctx is canceled.
-func (p *MessagePort) Listen(ctx context.Context) (<-chan MessageEvent, error) {
-	events, err := listen(ctx, p.jsMessagePort, "message", "messageerror")
+func (p *MessagePort) Listen(ctx context.Context) (<-chan MessageEventMessage, error) {
+	events, err := listen(ctx, p.jsMessagePort, parseMessageEventMessage, "message", "messageerror")
 	if err != nil {
 		return nil, err
 	}
