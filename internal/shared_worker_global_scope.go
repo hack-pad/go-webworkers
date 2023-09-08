@@ -5,6 +5,7 @@ package internal
 import (
 	"context"
 	"fmt"
+
 	"github.com/hack-pad/safejs"
 )
 
@@ -23,36 +24,16 @@ func WrapSharedWorkerGlobalScope(v safejs.Value) (*SharedWorkerGlobalScope, erro
 	return &SharedWorkerGlobalScope{v}, nil
 }
 
-func (p *SharedWorkerGlobalScope) Listen(ctx context.Context) (_ <-chan ConnectEvent, err error) {
-	ctx, cancel := context.WithCancel(ctx)
-	defer func() {
-		if err != nil {
-			cancel()
-		}
-	}()
-
-	events := make(chan ConnectEvent)
-	connectHandler, err := nonBlocking(func(args []safejs.Value) {
-		events <- parseConnectEvent(args[0])
-	})
-	if err != nil {
-		return nil, err
-	}
-	go func() {
-		<-ctx.Done()
-		_, err := p.self.Call("removeEventListener", "connect", connectHandler)
-		if err == nil {
-			connectHandler.Release()
-		}
-		close(events)
-	}()
-	_, err = p.self.Call("addEventListener", "connect", connectHandler)
+// Listen listens on the "connect" events, until the ctx is canceled.
+func (p *SharedWorkerGlobalScope) Listen(ctx context.Context) (<-chan MessageEvent, error) {
+	events, err := listen(ctx, p.self, "connect")
 	if err != nil {
 		return nil, err
 	}
 	return events, nil
 }
 
+// Close discards any tasks queued in the global scope's event loop, effectively closing this particular scope.
 func (p *SharedWorkerGlobalScope) Close() error {
 	_, err := p.self.Call("close")
 	return err

@@ -4,6 +4,7 @@ package sharedworker
 
 import (
 	"context"
+
 	"github.com/hack-pad/go-webworkers/internal"
 
 	"github.com/hack-pad/safejs"
@@ -34,9 +35,11 @@ func Self() (*GlobalSelf, error) {
 	}, nil
 }
 
-// Listen sends connect events on a channel for events fired by connection calls to this worker from within the parent scope.
+// Listen sends message events representing the connect event on a channel for events fired
+// by connection calls to this worker from within the parent scope.
+// Users are expected to call the Ports() on the MessageEvent, and take the 1st one as the target MessagePort.
 // Stops the listener and closes the channel when ctx is canceled.
-func (s *GlobalSelf) Listen(ctx context.Context) (<-chan internal.ConnectEvent, error) {
+func (s *GlobalSelf) Listen(ctx context.Context) (<-chan internal.MessageEvent, error) {
 	return s.scope.Listen(ctx)
 }
 

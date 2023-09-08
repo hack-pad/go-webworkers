@@ -38,48 +38,13 @@ func toJSSlice[Type any](slice []Type) []any {
 	return newSlice
 }
 
-func (p *MessagePort) Listen(ctx context.Context) (_ <-chan MessageEvent, err error) {
-	ctx, cancel := context.WithCancel(ctx)
-	defer func() {
-		if err != nil {
-			cancel()
-		}
-	}()
-
-	events := make(chan MessageEvent)
-	messageHandler, err := nonBlocking(func(args []safejs.Value) {
-		events <- parseMessageEvent(args[0])
-	})
-	if err != nil {
-		return nil, err
-	}
-	errorHandler, err := nonBlocking(func(args []safejs.Value) {
-		events <- parseMessageEvent(args[0])
-	})
+// Listen starts the MessagePort to listen on the "message" and "messageerror" events, until the ctx is canceled.
+func (p *MessagePort) Listen(ctx context.Context) (<-chan MessageEvent, error) {
+	events, err := listen(ctx, p.jsMessagePort, "message", "messageerror")
 	if err != nil {
 		return nil, err
 	}
 
-	go func() {
-		<-ctx.Done()
-		_, err := p.jsMessagePort.Call("removeEventListener", "message", messageHandler)
-		if err == nil {
-			messageHandler.Release()
-		}
-		_, err = p.jsMessagePort.Call("removeEventListener", "messageerror", errorHandler)
-		if err == nil {
-			errorHandler.Release()
-		}
-		close(events)
-	}()
-	_, err = p.jsMessagePort.Call("addEventListener", "message", messageHandler)
-	if err != nil {
-		return nil, err
-	}
-	_, err = p.jsMessagePort.Call("addEventListener", "messageerror", errorHandler)
-	if err != nil {
-		return nil, err
-	}
 	if start, err := p.jsMessagePort.Get("start"); err == nil {
 		if truthy, err := start.Truthy(); err == nil && truthy {
 			if _, err := p.jsMessagePort.Call("start"); err != nil {
