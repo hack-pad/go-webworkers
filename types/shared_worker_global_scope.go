@@ -14,12 +14,12 @@ type SharedWorkerGlobalScope struct {
 }
 
 func WrapSharedWorkerGlobalScope(v safejs.Value) (*SharedWorkerGlobalScope, error) {
-	someMethod, err := v.Get("onconnect")
+	someMethod, err := v.Get("SharedWorkerGlobalScope")
 	if err != nil {
 		return nil, err
 	}
 	if truthy, err := someMethod.Truthy(); err != nil || !truthy {
-		return nil, fmt.Errorf("invalid SharedWorkerGlobalScope value: onconnect is not a function")
+		return nil, fmt.Errorf("invalid SharedWorkerGlobalScope value: SharedWorkerGlobalScope is not a function")
 	}
 	return &SharedWorkerGlobalScope{v}, nil
 }
