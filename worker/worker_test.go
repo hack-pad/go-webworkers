@@ -301,3 +301,41 @@ self.addEventListener("message", event => {
 		}
 	})
 }
+
+func TestWorkerStopListen(t *testing.T) {
+	t.Parallel()
+	const pingPongScript = `
+"use strict";
+
+self.addEventListener("message", event => {
+	self.postMessage("foo");
+	self.postMessage("bar");
+});
+`
+	worker, err := NewFromScript(pingPongScript, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	cleanUpWorker(t, worker)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	_, err = worker.Listen(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	msg, err := safejs.ValueOf("start")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = worker.PostMessage(msg, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	time.Sleep(100 * time.Millisecond)
+
+	cancel()
+}
