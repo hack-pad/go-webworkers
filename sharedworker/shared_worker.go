@@ -6,7 +6,7 @@ package sharedworker
 import (
 	"context"
 
-	"github.com/hack-pad/go-webworkers/internal"
+	"github.com/hack-pad/go-webworkers/types"
 
 	"github.com/hack-pad/safejs"
 )
@@ -23,7 +23,7 @@ type SharedWorker struct {
 	url     string
 	name    string
 	worker  safejs.Value
-	msgport *internal.MessagePort
+	msgport *types.MessagePort
 }
 
 // New starts a worker with the given script's URL and name
@@ -36,7 +36,7 @@ func New(url, name string) (*SharedWorker, error) {
 	if err != nil {
 		return nil, err
 	}
-	msgport, err := internal.WrapMessagePort(port)
+	msgport, err := types.WrapMessagePort(port)
 	if err != nil {
 		return nil, err
 	}
@@ -91,6 +91,6 @@ func (w *SharedWorker) PostMessage(data safejs.Value, transfers []safejs.Value) 
 
 // Listen sends message events on a channel for events fired by self.postMessage() calls inside the Worker's global scope.
 // Stops the listener and closes the channel when ctx is canceled.
-func (w *SharedWorker) Listen(ctx context.Context) (<-chan internal.MessageEvent, error) {
+func (w *SharedWorker) Listen(ctx context.Context) (<-chan types.MessageEvent, error) {
 	return w.msgport.Listen(ctx)
 }

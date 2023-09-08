@@ -5,7 +5,7 @@ package sharedworker
 import (
 	"context"
 
-	"github.com/hack-pad/go-webworkers/internal"
+	"github.com/hack-pad/go-webworkers/types"
 
 	"github.com/hack-pad/safejs"
 )
@@ -16,7 +16,7 @@ import (
 // which in turns support receiving message via its Listen() and PostMessage().
 type GlobalSelf struct {
 	self  safejs.Value
-	scope *internal.SharedWorkerGlobalScope
+	scope *types.SharedWorkerGlobalScope
 }
 
 // Self returns the global "self"
@@ -25,7 +25,7 @@ func Self() (*GlobalSelf, error) {
 	if err != nil {
 		return nil, err
 	}
-	scope, err := internal.WrapSharedWorkerGlobalScope(self)
+	scope, err := types.WrapSharedWorkerGlobalScope(self)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func Self() (*GlobalSelf, error) {
 // by connection calls to this worker from within the parent scope.
 // Users are expected to call the Ports() on the MessageEvent, and take the 1st one as the target MessagePort.
 // Stops the listener and closes the channel when ctx is canceled.
-func (s *GlobalSelf) Listen(ctx context.Context) (<-chan internal.MessageEvent, error) {
+func (s *GlobalSelf) Listen(ctx context.Context) (<-chan types.MessageEvent, error) {
 	return s.scope.Listen(ctx)
 }
 

@@ -1,6 +1,6 @@
 //go:build js && wasm
 
-package internal
+package types
 
 import (
 	"github.com/hack-pad/safejs"
