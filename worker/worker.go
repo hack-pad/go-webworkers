@@ -12,9 +12,8 @@ import (
 )
 
 var (
-	jsWorker = safejs.MustGetGlobal("Worker")
-	jsURL    = safejs.MustGetGlobal("URL")
-	jsBlob   = safejs.MustGetGlobal("Blob")
+	jsURL  = safejs.MustGetGlobal("URL")
+	jsBlob = safejs.MustGetGlobal("Blob")
 )
 
 // Worker is a Dedicaetd Web Worker, which represents a background task created via a script.
@@ -44,7 +43,7 @@ func New(url string, options Options) (*Worker, error) {
 	if err != nil {
 		return nil, err
 	}
-	worker, err := jsWorker.New(url, jsOptions)
+	worker, err := safejs.MustGetGlobal("Worker").New(url, jsOptions)
 	if err != nil {
 		return nil, err
 	}
