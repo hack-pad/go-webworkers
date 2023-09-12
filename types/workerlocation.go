@@ -12,6 +12,6 @@ type WorkerLocation struct {
 	Search   string
 }
 
-// func (loc WorkerLocation) String() string {
-// 	return loc.Href
-// }
+func (loc WorkerLocation) String() string {
+	return loc.Href
+}
