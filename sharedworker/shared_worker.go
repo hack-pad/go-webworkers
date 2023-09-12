@@ -95,6 +95,6 @@ func (w *SharedWorker) Listen(ctx context.Context) (<-chan types.MessageEventMes
 }
 
 // Close closes the message port of this worker.
-func (w *SharedWorker) Close(ctx context.Context) error {
+func (w *SharedWorker) Close() error {
 	return w.msgport.Close()
 }
