@@ -15,8 +15,7 @@ import (
 // first element represents the MessagePort connected with the channel with its parent,
 // which in turns support receiving message via its Listen() and PostMessage().
 type GlobalSelf struct {
-	self  safejs.Value
-	scope *types.SharedWorkerGlobalScope
+	self *types.SharedWorkerGlobalScope
 }
 
 // Self returns the global "self"
@@ -30,8 +29,7 @@ func Self() (*GlobalSelf, error) {
 		return nil, err
 	}
 	return &GlobalSelf{
-		self:  self,
-		scope: scope,
+		self: scope,
 	}, nil
 }
 
@@ -40,19 +38,20 @@ func Self() (*GlobalSelf, error) {
 // Users are expected to call the Ports() on the MessageEvent, and take the 1st one as the target MessagePort.
 // Stops the listener and closes the channel when ctx is canceled.
 func (s *GlobalSelf) Listen(ctx context.Context) (<-chan types.MessageEventConnect, error) {
-	return s.scope.Listen(ctx)
+	return s.self.Listen(ctx)
 }
 
 // Close discards any tasks queued in the global scope's event loop, effectively closing this particular scope.
 func (s *GlobalSelf) Close() error {
-	return s.scope.Close()
+	return s.self.Close()
 }
 
 // Name returns the name that the Worker was (optionally) given when it was created.
 func (s *GlobalSelf) Name() (string, error) {
-	name, err := s.self.Get("name")
-	if err != nil {
-		return "", err
-	}
-	return name.String()
+	return s.self.Name()
+}
+
+// Location returns the WorkerLocation in the form of url.URL for this worker.
+func (s *GlobalSelf) Location() (*types.WorkerLocation, error) {
+	return s.self.Location()
 }

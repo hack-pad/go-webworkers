@@ -38,3 +38,50 @@ func (p *SharedWorkerGlobalScope) Close() error {
 	_, err := p.self.Call("close")
 	return err
 }
+
+// Name returns the name that the Worker was (optionally) given when it was created.
+func (p *SharedWorkerGlobalScope) Name() (string, error) {
+	v, err := p.self.Get("name")
+	if err != nil {
+		return "", err
+	}
+	return v.String()
+}
+
+// Location returns the WorkerLocation in the form of url.URL for this worker.
+func (p *SharedWorkerGlobalScope) Location() (*WorkerLocation, error) {
+	loc, err := p.self.Get("location")
+	if err != nil {
+		return nil, err
+	}
+
+	location := &WorkerLocation{}
+	l := []struct {
+		target *string
+		prop   string
+	}{
+		{&location.Hash, "hash"},
+		{&location.Host, "host"},
+		{&location.HostName, "hostname"},
+		{&location.Href, "href"},
+		{&location.Origin, "origin"},
+		{&location.PathName, "pathname"},
+		{&location.Port, "port"},
+		{&location.Protocol, "protocol"},
+		{&location.Search, "search"},
+	}
+
+	for _, entry := range l {
+		v, err := loc.Get(entry.prop)
+		if err != nil {
+			return nil, err
+		}
+		vv, err := v.String()
+		if err != nil {
+			return nil, err
+		}
+		*entry.target = vv
+	}
+
+	return location, nil
+}
