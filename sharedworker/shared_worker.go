@@ -1,7 +1,7 @@
 //go:build js && wasm
 
-// Package worker provides a Dedicated Web Workers driver for Go code compiled to WebAssembly.
-package worker
+// Package sharedworker provides a Shared Web Workers driver for Go code compiled to WebAssembly.
+package sharedworker
 
 import (
 	"context"
@@ -16,49 +16,39 @@ var (
 	jsBlob = safejs.MustGetGlobal("Blob")
 )
 
-// Worker is a Dedicaetd Web Worker, which represents a background task created via a script.
+// SharedWorker is a Shared Web Worker, which represents a background task created via a script.
 // Use Listen() and PostMessage() to communicate with the worker.
-type Worker struct {
-	worker safejs.Value
-	port   *types.MessagePort
+type SharedWorker struct {
+	url     string
+	name    string
+	worker  safejs.Value
+	msgport *types.MessagePort
 }
 
-// Options contains optional configuration for new Workers
-type Options struct {
-	// Name specifies an identifying name for the DedicatedWorkerGlobalScope representing the scope of the worker, which is mainly useful for debugging purposes.
-	Name string
-}
-
-func (w Options) toJSValue() (safejs.Value, error) {
-	options := make(map[string]any)
-	if w.Name != "" {
-		options["name"] = w.Name
-	}
-	return safejs.ValueOf(options)
-}
-
-// New starts a worker with the given script's URL and returns it
-func New(url string, options Options) (*Worker, error) {
-	jsOptions, err := options.toJSValue()
+// New starts a worker with the given script's URL and name
+func New(url, name string) (*SharedWorker, error) {
+	worker, err := safejs.MustGetGlobal("SharedWorker").New(url, name)
 	if err != nil {
 		return nil, err
 	}
-	worker, err := safejs.MustGetGlobal("Worker").New(url, jsOptions)
+	port, err := worker.Get("port")
 	if err != nil {
 		return nil, err
 	}
-	port, err := types.WrapMessagePort(worker)
+	msgport, err := types.WrapMessagePort(port)
 	if err != nil {
 		return nil, err
 	}
-	return &Worker{
-		port:   port,
-		worker: worker,
+	return &SharedWorker{
+		url:     url,
+		name:    name,
+		msgport: msgport,
+		worker:  worker,
 	}, nil
 }
 
 // NewFromScript is like New, but starts the worker with the given script (in JavaScript)
-func NewFromScript(jsScript string, options Options) (*Worker, error) {
+func NewFromScript(jsScript, name string) (*SharedWorker, error) {
 	blob, err := jsBlob.New([]any{jsScript}, map[string]any{
 		"type": "text/javascript",
 	})
@@ -73,14 +63,17 @@ func NewFromScript(jsScript string, options Options) (*Worker, error) {
 	if err != nil {
 		return nil, err
 	}
-	return New(objectURLStr, options)
+	return New(objectURLStr, name)
 }
 
-// Terminate immediately terminates the Worker.
-// This does not offer the worker an opportunity to finish its operations; it is stopped at once.
-func (w *Worker) Terminate() error {
-	_, err := w.worker.Call("terminate")
-	return err
+// URL returns the script URL of the worker
+func (w *SharedWorker) URL() string {
+	return w.url
+}
+
+// Name returns the name of the worker
+func (w *SharedWorker) Name() string {
+	return w.name
 }
 
 // PostMessage sends data in a message to the worker, optionally transferring ownership of all items in transfers.
@@ -91,12 +84,17 @@ func (w *Worker) Terminate() error {
 // If the ownership of an object is transferred, it becomes unusable in the context it was sent from and becomes available only to the worker it was sent to.
 // Transferable objects are instances of classes like ArrayBuffer, MessagePort or ImageBitmap objects that can be transferred.
 // null is not an acceptable value for transfer.
-func (w *Worker) PostMessage(data safejs.Value, transfers []safejs.Value) error {
-	return w.port.PostMessage(data, transfers)
+func (w *SharedWorker) PostMessage(data safejs.Value, transfers []safejs.Value) error {
+	return w.msgport.PostMessage(data, transfers)
 }
 
 // Listen sends message events on a channel for events fired by self.postMessage() calls inside the Worker's global scope.
 // Stops the listener and closes the channel when ctx is canceled.
-func (w *Worker) Listen(ctx context.Context) (<-chan types.MessageEventMessage, error) {
-	return w.port.Listen(ctx)
+func (w *SharedWorker) Listen(ctx context.Context) (<-chan types.MessageEventMessage, error) {
+	return w.msgport.Listen(ctx)
+}
+
+// Close closes the message port of this worker.
+func (w *SharedWorker) Close() error {
+	return w.msgport.Close()
 }
