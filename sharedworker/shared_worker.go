@@ -93,3 +93,8 @@ func (w *SharedWorker) PostMessage(data safejs.Value, transfers []safejs.Value) 
 func (w *SharedWorker) Listen(ctx context.Context) (<-chan types.MessageEventMessage, error) {
 	return w.msgport.Listen(ctx)
 }
+
+// Close closes the message port of this worker.
+func (w *SharedWorker) Close(ctx context.Context) error {
+	return w.msgport.Close()
+}

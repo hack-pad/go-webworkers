@@ -54,3 +54,9 @@ func (p *MessagePort) Listen(ctx context.Context) (<-chan MessageEventMessage, e
 	}
 	return events, nil
 }
+
+// Close disconnects the port, so it is no longer active. This stops the flow of messages to that port.
+func (p *MessagePort) Close() error {
+	_, err := p.jsMessagePort.Call("close")
+	return err
+}
